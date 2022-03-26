@@ -1,37 +1,51 @@
 #!/usr/bin/env python
 
 """Tests for `nabla` package."""
-
-import pytest
-
-from click.testing import CliRunner
-
-from nabla import nabla
-from nabla import cli
+from nabla.graph import Graph, Variable, multiply, Constant, add
+from nabla.compute import topological_sort, forward_pass, backward_pass
 
 
-@pytest.fixture
-def response():
-    """Sample pytest fixture.
+def test_topological_sort():
+    with Graph():
+        x = Variable(1.3, name="x")
+        y = Variable(1, name="y")
+        z = Constant(5, name="z")
 
-    See more at: http://doc.pytest.org/en/latest/fixture.html
-    """
-    # import requests
-    # return requests.get('https://github.com/audreyr/cookiecutter-pypackage')
+        f = x * y + z
+
+        order = topological_sort(f)
+        assert len(order) == 5
+
+        expected_types = [Variable, Variable, multiply, Constant, add]
+        actual_types = [type(x) for x in order]
+        assert actual_types == expected_types
+
+        expected_names = ["x", "y", "mul/0", "z", "add/0"]
+        actual_names = [x.name for x in order]
+        assert actual_names == expected_names
 
 
-def test_content(response):
-    """Sample pytest test function with the pytest fixture as an argument."""
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
+def test_forward_pass():
+    with Graph():
+        x = Variable(1.3, name="x")
+        y = Variable(1, name="y")
+        z = 5
+
+        f = x * y + z
+
+        order = topological_sort(f)
+        result = forward_pass(order)
+        assert result == 6.3
 
 
-def test_command_line_interface():
-    """Test the CLI."""
-    runner = CliRunner()
-    result = runner.invoke(cli.main)
-    assert result.exit_code == 0
-    assert 'nabla.cli.main' in result.output
-    help_result = runner.invoke(cli.main, ['--help'])
-    assert help_result.exit_code == 0
-    assert '--help  Show this message and exit.' in help_result.output
+def test_backward_pass():
+    with Graph():
+        x = Variable(1.3, name="x")
+        y = Variable(1, name="y")
+        z = 5
+
+        f = x * y + z
+
+        order = topological_sort(f)
+        _ = forward_pass(order)
+        _ = backward_pass(order)

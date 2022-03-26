@@ -50,12 +50,12 @@ clean-test: ## remove test and coverage artifacts
 lint/flake8: ## check style with flake8
 	flake8 nabla tests
 lint/black: ## check style with black
-	black --check nabla tests
+	black nabla tests
 
-lint: lint/flake8 lint/black ## check style
+lint: lint/black lint/flake8 ## check style
 
 test: ## run tests quickly with the default Python
-	pytest
+	pytest --ignore=setup.py
 
 test-all: ## run tests on every Python version with tox
 	tox
