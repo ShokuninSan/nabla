@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 """Tests for `nabla` package."""
+import pytest
+
 from nabla.graph import Graph, Variable, multiply, Constant, add
 from nabla.compute import topological_sort, forward_pass, backward_pass
 
@@ -27,25 +29,28 @@ def test_topological_sort():
 
 def test_forward_pass():
     with Graph():
-        x = Variable(1.3, name="x")
-        y = Variable(1, name="y")
+        x = Variable(3, name="x")
+        y = Variable(2, name="y")
         z = 5
 
         f = x * y + z
 
         order = topological_sort(f)
         result = forward_pass(order)
-        assert result == 6.3
+
+        assert result == 11
 
 
 def test_backward_pass():
     with Graph():
-        x = Variable(1.3, name="x")
-        y = Variable(1, name="y")
-        z = 5
+        x = Variable(3, name="x")
+        y = Constant(2, name="y")
 
-        f = x * y + z
+        f = x ** y
 
         order = topological_sort(f)
         _ = forward_pass(order)
-        _ = backward_pass(order)
+        dfdx, dfdy, _ = backward_pass(order)
+
+        assert dfdx == 6
+        assert pytest.approx(dfdy, rel=0.01) == 9.88
